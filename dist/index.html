@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="An interactive Marswalk planning simulator by Team Ediz.">
+  <meta name="generator" content="Built with OpenAI Codex assistance">
+  <title>Jezero Go/No-Go</title>
+  <link rel="stylesheet" href="style.css">
+  <script defer src="assets/terrain-data.js"></script>
+  <script defer src="app.js"></script>
+</head>
+<body>
+  <header class="top wrap">
+    <a class="brand" href="./"><span class="planet" aria-hidden="true"></span> TEAM EDIZ</a>
+    <nav aria-label="Project links"><a href="demo.html">Project demo ↗</a><a href="#method">Data &amp; method ↓</a></nav>
+  </header>
+  <main class="wrap">
+    <section class="hero">
+      <p class="eyebrow">MARSWALK SIMULATOR <span> / </span> WESTERN JEZERO CRATER</p>
+      <h1>Jezero <em>Go/No-Go</em></h1>
+      <p>Plan a return trip across real Martian terrain. When Mission Control cuts your time, decide how much science you can still fit in.</p>
+    </section>
+    <div class="workspace">
+      <section class="map-panel" aria-labelledby="map-heading">
+        <header class="panel-head"><h2 id="map-heading">Traverse map</h2><span class="mono">MRO CTX · 20 M/PIXEL</span></header>
+        <div id="map" class="map">
+          <canvas id="map-canvas" role="img" aria-label="Terrain map with a simulated habitat and two science stops. The same stops can be selected in mission controls."></canvas>
+          <button class="pin" id="pin-delta" data-stop="delta" type="button">A <span>West fan</span></button>
+          <button class="pin" id="pin-floor" data-stop="floor" type="button">B <span>Crater floor</span></button>
+          <div class="pin habitat" id="pin-base" aria-label="Simulated habitat">⌂ <span>Habitat</span></div>
+          <div class="map-north" aria-label="North is up">N<br>↑</div>
+          <div class="scale"><span id="scale-line"></span> 1 km</div>
+        </div>
+        <div class="legend"><span><i></i> Selected traverse</span><span><i></i> Alternate traverse</span><span>North up · hillshade</span></div>
+      </section>
+      <section class="controls panel" aria-labelledby="mission-heading">
+        <header class="panel-head"><h2 id="mission-heading">Mission control</h2><button type="button" class="quiet" id="reset">Reset</button></header>
+        <div class="controls-body">
+          <div id="verdict" class="verdict" role="status" aria-live="polite"></div>
+          <button id="cut" class="cut" type="button"><span aria-hidden="true">⚡</span> Simulate 20 min time cut</button>
+          <label class="range-label" for="budget">Round-trip time budget <output id="budget-out"></output></label>
+          <input type="range" id="budget" min="70" max="210" value="150">
+          <div class="range-ticks"><span>70 min</span><span>210 min</span></div>
+          <fieldset><legend>Science stop</legend>
+            <div class="choice-row"><button type="button" data-stop="delta">A · West fan</button><button type="button" data-stop="floor">B · Crater floor</button></div>
+          </fieldset>
+          <fieldset><legend>Traverse</legend>
+            <div class="choice-row"><button type="button" data-route="direct">Shortest</button><button type="button" data-route="gentle">Lower grade</button></div>
+          </fieldset>
+          <details class="assumptions"><summary>Simulation assumptions</summary>
+            <label class="range-label" for="speed">Walking speed <output id="speed-out"></output></label>
+            <input type="range" id="speed" min="1.5" max="4" step="0.1" value="2.5">
+            <p>20 min at the stop, 5 min return reserve. The return follows the outbound traverse in reverse.</p>
+          </details>
+        </div>
+      </section>
+    </div>
+    <div class="below">
+      <section class="panel profile" aria-labelledby="profile-heading">
+        <header class="panel-head"><h2 id="profile-heading">Outbound elevation</h2><span class="mono" id="profile-label"></span></header>
+        <dl class="stats" id="stats"></dl>
+        <canvas id="profile-chart" role="img"></canvas>
+      </section>
+      <article class="panel science" aria-labelledby="science-title">
+        <img id="science-img" src="assets/scarp.jpg" alt="Perseverance view of scarps on the western delta">
+        <div class="science-copy"><p class="eyebrow">SCIENCE TARGET</p><h2 id="science-title"></h2>
+          <p id="science-text"></p><a id="science-source" target="_blank" rel="noreferrer">Perseverance image ↗</a>
+        </div>
+      </article>
+    </div>
+    <details class="method panel" id="method">
+      <summary>Data, calculations, and limits</summary>
+      <p>The map is a colorized hillshade calculated from the USGS Mars 2020 Context Camera (CTX) elevation mosaic. The simulator samples elevation at 20 m raster cells. It finds traverses across eight adjacent cells using a distance cost or a distance cost weighted by squared grade. The displayed peak grade is the steepest sampled segment, in degrees.</p>
+      <p>Estimated plan time equals twice the one-way planar distance divided by the assumed walking speed, plus 20 minutes for science and 5 minutes of reserve. The terrain model guides the route geometry. The time estimate assumes constant speed. Habitat and science stop coordinates are illustrative, and rover photos provide regional context. This educational scenario uses a time-budget decision only.</p>
+      <ul>
+        <li><a href="https://astrogeology.usgs.gov/search/map/mars_2020_science_investigation_ctx_dem_mosaic">USGS Astrogeology · Mars 2020 Science Investigation CTX DEM Mosaic</a></li>
+        <li><a href="https://science.nasa.gov/resource/the-scarps-of-jezero-craters-delta/">NASA/JPL-Caltech/ASU/MSSS · Perseverance Mastcam-Z, Jezero delta scarps</a></li>
+        <li><a href="https://science.nasa.gov/resource/perseverance-rovers-view-of-south-seitah/">NASA/JPL-Caltech/ASU/MSSS · Perseverance Mastcam-Z, South Séítah</a></li>
+        <li><a href="https://www.usgs.gov/maps/geologic-map-jezero-crater-and-nili-planum-region-mars">USGS · Geologic map of Jezero crater and Nili Planum</a></li>
+      </ul>
+    </details>
+    <footer>Team Ediz <span>·</span> NASA Space Apps Challenge 2026 <span>·</span> Code and text created with OpenAI Codex assistance.</footer>
+  </main>
+</body>
+</html>
