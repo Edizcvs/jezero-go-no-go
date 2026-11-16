@@ -33,4 +33,4 @@ py build-terrain.py
 py build-demo.py
 ```
 
-`build-demo.py` records the guided tour of the real app as `dist/assets/jezero-demo.mp4`. It uses headless Microsoft Edge with virtual time, so the recording is repeatable, and takes a few minutes. The app uses Instrument Sans and IBM Plex Mono from Google Fonts, with system fallbacks. The concept is Team Ediz's. Code, copy, terrain processing and demo production used AI coding assistance (OpenAI Codex, Anthropic Claude). The elevation observations and rover photos come from the credited missions.
+`build-demo.py` records the guided tour of the real app as `dist/assets/jezero-demo.mp4`. It uses headless Microsoft Edge with virtual time, so the recording is repeatable, and takes a few minutes. The app uses Newsreader, IBM Plex Sans and IBM Plex Mono from Google Fonts, with system fallbacks. The concept is Team Ediz's. Code, copy, terrain processing and demo production used AI coding assistance (OpenAI Codex, Anthropic Claude). The elevation observations and rover photos come from the credited missions.
