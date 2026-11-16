@@ -26,7 +26,7 @@ DIST = ROOT / "dist"
 ASSETS = DIST / "assets"
 EDGE = Path("C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe")
 W, H = 1280, 720
-FPS = 8            # capture rate; the video is resampled to 24 fps
+FPS = 8            # capture rate; the video is resampled to 24 fps and sped up to 29.5 s (Space Apps limit: 30 s)
 DURATION = 47      # seconds; the tour takes about 45
 WORKERS = 6
 POSTER_AT = 31.0   # seconds into the tour: the mid-walk decision
@@ -100,7 +100,7 @@ def main():
         subprocess.run([
             imageio_ffmpeg.get_ffmpeg_exe(), "-hide_banner", "-loglevel", "error", "-y",
             "-framerate", str(FPS), "-i", str(work / "f%04d.png"),
-            "-vf", f"setpts=PTS*29.5/{DURATION},fps=24",  # Space Apps limit: demo video 30 s or less "-c:v", "libx264", "-crf", "20", "-pix_fmt", "yuv420p",
+            "-vf", f"setpts=PTS*29.5/{DURATION},fps=24", "-c:v", "libx264", "-crf", "20", "-pix_fmt", "yuv420p",
             "-movflags", "+faststart",
             "-metadata", "comment=Screen recording of Jezero Go/No-Go by Team DuduBubu (built with AI coding assistance)",
             str(ASSETS / "jezero-demo.mp4"),
