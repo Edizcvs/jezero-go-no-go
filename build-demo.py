@@ -100,7 +100,7 @@ def main():
         subprocess.run([
             imageio_ffmpeg.get_ffmpeg_exe(), "-hide_banner", "-loglevel", "error", "-y",
             "-framerate", str(FPS), "-i", str(work / "f%04d.png"),
-            "-vf", "fps=24", "-c:v", "libx264", "-crf", "20", "-pix_fmt", "yuv420p",
+            "-vf", f"setpts=PTS*29.5/{DURATION},fps=24",  # Space Apps limit: demo video 30 s or less "-c:v", "libx264", "-crf", "20", "-pix_fmt", "yuv420p",
             "-movflags", "+faststart",
             "-metadata", "comment=Screen recording of Jezero Go/No-Go by Team DuduBubu (built with AI coding assistance)",
             str(ASSETS / "jezero-demo.mp4"),

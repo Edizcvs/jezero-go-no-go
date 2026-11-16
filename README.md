@@ -8,7 +8,7 @@ Files: `dist/planner.js` is the routing engine (pure functions, tested by `check
 
 ## Try the scenario
 
-Press **▶ Guided tour** (or open `index.html?tour`) for a hands-off, 45-second walkthrough. The map is keyboard-accessible: focus it, move the crosshair with the arrow keys (Shift for bigger steps) and press Enter to add a site.
+Press **▶ Guided tour** (or open `index.html?tour`) for a hands-off walkthrough (the demo video is a 30-second sped-up recording of it). The map is keyboard-accessible: focus it, move the crosshair with the arrow keys (Shift for bigger steps) and press Enter to add a site.
 
 1. The default plan visits the west fan: GO, 141 min against a 150 min safe return (160 min budget minus 10 min reserve).
 2. Press **Mission Control: −30 min**. It is now NO-GO, and the map marks the point of no return where the crew must turn back. Apply the suggested best plan (crater floor, 84 min).
