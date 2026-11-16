@@ -1,3 +1,5 @@
+// Jezero Go/No-Go interface. Concept by Team DuduBubu.
+// AI disclosure: this code was written with AI coding assistance (Anthropic Claude, OpenAI Codex).
 "use strict";
 const data = window.JEZERO_DATA;
 const P = Planner.createPlanner(data);

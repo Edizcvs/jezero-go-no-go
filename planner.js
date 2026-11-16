@@ -1,5 +1,6 @@
 // Terrain-aware Marswalk planning engine. Pure functions over the elevation grid;
 // no DOM access, so check.html can test it directly.
+// AI disclosure: this code was written with AI coding assistance (Anthropic Claude, OpenAI Codex).
 (function (root) {
   "use strict";
   const MAX_GRADE = 0.3;      // steeper sampled edges are treated as unwalkable
