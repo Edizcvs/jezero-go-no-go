@@ -1,4 +1,4 @@
-"""AI disclosure: written with AI coding assistance (Anthropic Claude, OpenAI Codex).
+"""Made by Team DuduBubu, with AI coding assistance (Anthropic Claude, OpenAI Codex).
 
 Crop the USGS CTX mosaic into a hillshade image and a compact elevation grid.
 
@@ -57,7 +57,7 @@ encoded = base64.b64encode(decimetres.astype("<u2").tobytes()).decode("ascii")
 
 result = {
     "source": "USGS Mars 2020 Science Investigation CTX DEM Mosaic (MRO Context Camera), 20 m/pixel",
-    "aiDisclosure": "Cropped and encoded by build-terrain.py, a script written with AI coding assistance "
+    "aiDisclosure": "Cropped and encoded by build-terrain.py, made by Team DuduBubu with AI coding assistance "
                     "(Anthropic Claude, OpenAI Codex). Elevation values are unchanged USGS data.",
     "width": width, "height": height, "pixelMeters": 20,
     "bounds": [transform.c / XSCALE, (transform.f - height * 20) / YSCALE,

@@ -1,4 +1,4 @@
-"""AI disclosure: written with AI coding assistance (Anthropic Claude, OpenAI Codex).
+"""Made by Team DuduBubu, with AI coding assistance (Anthropic Claude, OpenAI Codex).
 
 Record the app's guided tour as the demo video.
 
