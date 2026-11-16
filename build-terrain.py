@@ -1,4 +1,6 @@
-"""Crop the USGS CTX mosaic into a hillshade image and a compact elevation grid.
+"""AI disclosure: written with AI coding assistance (Anthropic Claude, OpenAI Codex).
+
+Crop the USGS CTX mosaic into a hillshade image and a compact elevation grid.
 
 Routes are no longer precomputed here: the browser plans them live from the grid
 (see dist/planner.js), so visitors can place their own science stops.
@@ -54,6 +56,9 @@ assert decimetres.max() < 65535
 encoded = base64.b64encode(decimetres.astype("<u2").tobytes()).decode("ascii")
 
 result = {
+    "source": "USGS Mars 2020 Science Investigation CTX DEM Mosaic (MRO Context Camera), 20 m/pixel",
+    "aiDisclosure": "Cropped and encoded by build-terrain.py, a script written with AI coding assistance "
+                    "(Anthropic Claude, OpenAI Codex). Elevation values are unchanged USGS data.",
     "width": width, "height": height, "pixelMeters": 20,
     "bounds": [transform.c / XSCALE, (transform.f - height * 20) / YSCALE,
                (transform.c + width * 20) / XSCALE, transform.f / YSCALE],

@@ -1,6 +1,6 @@
 # Jezero Go/No-Go
 
-Team Ediz · 2026 NASA Space Apps Challenge · Interplanetary Survival Guide: Martian Map
+Team DuduBubu · 2026 NASA Space Apps Challenge · Interplanetary Survival Guide: Martian Map
 
 ## Links
 
@@ -31,7 +31,3 @@ The look borrows from printed survey charts and mission paperwork: paper and ink
 - Tobler, W. (1993). Three presentations on geographical analysis and modeling. NCGIA Technical Report 93-1 (hiking function).
 - [Rasterio](https://rasterio.readthedocs.io/), [NumPy](https://numpy.org/), [Pillow](https://python-pillow.org/), and [FFmpeg](https://ffmpeg.org/)
 - [Newsreader](https://fonts.google.com/specimen/Newsreader), [IBM Plex Sans](https://fonts.google.com/specimen/IBM+Plex+Sans) and [IBM Plex Mono](https://fonts.google.com/specimen/IBM+Plex+Mono)
-
-## Super Intelligence disclosure
-
-The Marswalk Go/No-Go concept was conceived by Team Ediz. AI coding assistants (OpenAI Codex and Anthropic Claude) helped research sources, implement and test the simulator, process the terrain data, draft and edit submission text, and produce the demo video. NASA and USGS supplied the underlying Mars observations and imagery. The project and video credit this AI assistance.
