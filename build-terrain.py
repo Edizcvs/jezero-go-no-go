@@ -29,13 +29,15 @@ with rasterio.open(ROOT / "terrain.tif") as dataset:
 height, width = grid.shape
 assert np.isfinite(grid).all()
 
-# Hillshade basemap (unchanged look).
+# Hillshade basemap printed on paper: shading darkens a warm paper tone, and
+# higher ground is washed slightly lighter, like a printed relief chart.
 dy, dx = np.gradient(grid, 20)
 light = np.clip((0.62 + dx * 1.15 - dy * 1.15) / np.sqrt(1 + dx**2 + dy**2), 0, 1)
 low, high = np.percentile(grid, [3, 97])
 elevation_tone = np.clip((grid - low) / (high - low), 0, 1)
-tone = np.clip(light * .64 + elevation_tone * .21, 0, 1)
-colors = np.stack([36 + 201 * tone, 27 + 145 * tone, 25 + 113 * tone], axis=-1)
+shade = np.clip(0.80 + 0.32 * (light - 0.62) + 0.06 * elevation_tone, 0.55, 1.0)
+paper = np.array([244, 239, 229], dtype=float)
+colors = paper * shade[..., None]
 Image.fromarray(colors.astype(np.uint8)).resize((width * 4, height * 4), Image.Resampling.BICUBIC).save(
     ASSETS / "terrain.webp", quality=92)
 

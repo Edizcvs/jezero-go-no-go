@@ -42,11 +42,14 @@ def serve():
 
 
 def capture(url, ms, path, profile):
-    for _ in range(3):  # headless Edge occasionally exits without writing a frame
-        subprocess.run([str(EDGE), "--headless=new", "--disable-gpu", "--hide-scrollbars", "--mute-audio",
-                        f"--user-data-dir={profile}", f"--window-size={W},{H}",
-                        f"--virtual-time-budget={ms}", f"--screenshot={path}", url],
-                       capture_output=True, timeout=120)
+    for _ in range(4):  # headless Edge occasionally hangs or exits without writing a frame
+        try:
+            subprocess.run([str(EDGE), "--headless=new", "--disable-gpu", "--hide-scrollbars", "--mute-audio",
+                            f"--user-data-dir={profile}", f"--window-size={W},{H}",
+                            f"--virtual-time-budget={ms}", f"--screenshot={path}", url],
+                           capture_output=True, timeout=60)
+        except subprocess.TimeoutExpired:
+            continue
         if path.exists():
             return
     raise RuntimeError(f"no frame at {ms} ms")
