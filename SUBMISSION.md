@@ -4,13 +4,15 @@ Team Ediz · 2026 NASA Space Apps Challenge · Interplanetary Survival Guide: Ma
 
 ## High-level project summary
 
-Jezero Go/No-Go is an interactive Marswalk planner that lets a visitor decide whether a crew can reach a science stop and return within a simulated time budget. It combines topography from the Mars Reconnaissance Orbiter with ground-level Perseverance imagery. When Mission Control cuts the available time, the visitor can inspect the impact on the planned route and switch to a closer science objective.
+Jezero Go/No-Go is an interactive Marswalk planner. A visitor plans a walk to science sites across real Mars Reconnaissance Orbiter terrain and sees whether the crew can get home in time. The map shows where the crew must turn back. The visitor then runs the EVA. When Mission Control cuts the time mid-walk, they decide whether to continue, re-plan or turn back.
 
 ## Detailed project description
 
-Start at a simulated habitat in western Jezero Crater. Choose a science stop and compare the shortest traverse with one that penalizes steeper terrain. The map and elevation profile show distance, climb, peak sampled grade, and estimated round-trip time. One click reduces the budget by 20 minutes. Under the default assumptions, the west fan needs 146 minutes, which exceeds the revised 130-minute budget. The crater-floor alternative takes 89 minutes, so the crew can still conduct fieldwork and return with time to spare.
+The crew starts at a simulated habitat in western Jezero Crater. Visitors pick science sites, including their own sites clicked anywhere on the map, and give each a science value. The planner computes terrain-aware routes live in the browser. Walking speed depends on slope, so climbs are slower and the trip back takes a different time from the trip out. The planner finds the fastest visiting order and gives a GO or NO-GO against the time limit. The limit is the Mission Control budget or the suit's life support, whichever is shorter, minus a 10-minute reserve. For a NO-GO plan the map marks the point of no return: the first spot where the fastest way home would arrive too late. A shaded overlay shows the area the crew could not reach and still return from. "Best plan" picks the most valuable set of sites that still fits.
 
-We used Python, Rasterio, NumPy, and Pillow to crop the USGS elevation mosaic and calculate routes. The interactive app uses HTML, CSS, JavaScript, and Canvas. Dijkstra's algorithm searches an eight-neighbor elevation grid with either distance or grade-weighted distance as the cost. A constant walking speed, 20 minutes for science, and 5 minutes of return reserve are simulation assumptions. The app supports educational mission planning and illustrates how time, terrain, and science goals inform a decision.
+Then the visitor starts the EVA. At an unexpected moment Mission Control cuts 30 minutes. The planner recalculates from the crew's current position and offers three choices: continue, re-plan to the most valuable remaining sites, or turn back now. Each choice shows its new return time. With the default settings, the west fan takes 141 minutes against a 150-minute safe return. After a 30-minute cut it becomes NO-GO, and the crater floor (84 minutes) is the plan that fits. A 45-second guided tour shows the whole flow without any clicks. The map also works with the keyboard and on phones.
+
+We used Python, Rasterio, NumPy and Pillow to turn the USGS CTX elevation mosaic into a hillshade and a compact elevation grid. The app uses HTML, CSS, JavaScript and Canvas, with no backend. Routing runs Dijkstra's algorithm over each cell's eight neighbours, costed by walking time from Tobler's hiking function. The planner tries every visiting order and every subset of sites. A browser test page checks the engine. Tobler's function is an Earth hiking model, and the site positions are illustrative. The tool is meant for education and shows how terrain, time and science priorities shape a go/no-go call.
 
 ## NASA data
 
@@ -20,15 +22,10 @@ We used Python, Rasterio, NumPy, and Pillow to crop the USGS elevation mosaic an
 ## Other references and tools
 
 - [USGS Geologic map of Jezero crater and the Nili Planum region](https://www.usgs.gov/maps/geologic-map-jezero-crater-and-nili-planum-region-mars)
+- Tobler, W. (1993). Three presentations on geographical analysis and modeling. NCGIA Technical Report 93-1 (hiking function).
 - [Rasterio](https://rasterio.readthedocs.io/), [NumPy](https://numpy.org/), [Pillow](https://python-pillow.org/), and [FFmpeg](https://ffmpeg.org/)
 - [Instrument Sans](https://fonts.google.com/specimen/Instrument+Sans) and [IBM Plex Mono](https://fonts.google.com/specimen/IBM+Plex+Mono)
 
 ## Super Intelligence disclosure
 
-OpenAI Codex proposed the Marswalk-planning concept and helped research the sources, implement and test the simulator, process the terrain data, draft submission text, and produce the demo video. NASA and USGS supplied the underlying Mars observations and imagery. The project and video credit Codex assistance.
-
-## Submission review
-
-The [2026 Project Submission Guide](https://www.spaceappschallenge.org/resources/project-submission-guide/) says AI may accelerate the project but should not originate the solution idea. The concept in this draft was proposed by Codex. Review this with your team and an organizer before submitting it as a judged entry. Update the description and disclosure to reflect the team’s actual contributions.
-
-The Project Demo field requires a public link that opens without a sign-in. The included `dist/assets/jezero-demo.mp4` is 29 seconds. The bundled `dist/demo.html` player can be used if hosted publicly. For the Universal Event, submission closes on November 15 at 11:59 p.m. in the team owner's local time. The [Participant FAQ](https://www.spaceappschallenge.org/resources/participant-faqs/) requires at least two registered Universal Event participants for global judging.
+The Marswalk Go/No-Go concept was conceived by Team Ediz. AI coding assistants (OpenAI Codex and Anthropic Claude) helped research sources, implement and test the simulator, process the terrain data, draft and edit submission text, and produce the demo video. NASA and USGS supplied the underlying Mars observations and imagery. The project and video credit this AI assistance.

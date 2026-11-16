@@ -2,14 +2,18 @@
 
 Team Ediz's educational Marswalk simulator for the 2026 NASA Space Apps Interplanetary Survival Guide challenge.
 
-Open `dist/index.html` in a browser. The app runs locally without a backend. To serve it over HTTP, run `py -m http.server 8294 --directory dist` and open `http://localhost:8294`. The demo is at `dist/demo.html`. The site can be hosted by publishing the contents of `dist/`.
+Serve `dist/` over HTTP: run `py -m http.server 8294 --directory dist` and open `http://localhost:8294`. No backend is needed. Publish the contents of `dist/` to host it. Planner checks run at `http://localhost:8294/check.html` (the tab title reads PASS or FAIL).
+
+Files: `dist/planner.js` is the routing engine (pure functions, tested by `check.html`), `dist/app.js` is the interface, `build-terrain.py` makes the hillshade and elevation grid.
 
 ## Try the scenario
 
-1. Start at the west fan with the default 150-minute budget and 2.5 km/h walking speed. The estimate is 146 minutes.
-2. Apply the simulated 20-minute cut. The west fan is 16 minutes over budget.
-3. Switch to the crater floor. The estimate drops to 89 minutes, leaving 41 minutes above the modeled reserve.
-4. Switch between the shortest and lower-grade traverses to inspect changes in the elevation profile.
+Press **▶ Guided tour** (or open `index.html?tour`) for a hands-off, 45-second walkthrough. The map is keyboard-accessible: focus it, move the crosshair with the arrow keys (Shift for bigger steps) and press Enter to add a site.
+
+1. The default plan visits the west fan: GO, 141 min against a 150 min safe return (160 min budget minus 10 min reserve).
+2. Press **Mission Control: −30 min**. It is now NO-GO, and the map marks the point of no return where the crew must turn back. Apply the suggested best plan (crater floor, 84 min).
+3. Click anywhere on the map to add your own site, give it a science value, and press **Best plan for this budget**.
+4. Tick both preset sites, raise the budget to about 185 min and press **Start EVA**. Mission Control cuts the time at a random moment. Choose to continue, re-plan from where the crew stands, or turn back.
 
 ## Data and methods
 
@@ -17,7 +21,7 @@ Open `dist/index.html` in a browser. The app runs locally without a backend. To 
 - [The Scarps of Jezero Crater's Delta](https://science.nasa.gov/resource/the-scarps-of-jezero-craters-delta/) and [Perseverance Rover's View of South Séítah](https://science.nasa.gov/resource/perseverance-rovers-view-of-south-seitah/), NASA/JPL-Caltech/ASU/MSSS. Mastcam-Z images illustrate the two regional science objectives.
 - [Geologic map of Jezero crater and Nili Planum](https://www.usgs.gov/maps/geologic-map-jezero-crater-and-nili-planum-region-mars), USGS. Regional geologic context.
 
-The terrain builder uses an eight-neighbor Dijkstra search. The shortest traverse minimizes planar distance across edges with absolute grade no greater than 55%. The lower-grade traverse caps edge grade at 22% and minimizes the sum of distance multiplied by `1 + 24 × grade²`. These caps are illustrative routing settings. The simulator assumes the same walking speed in both directions and returns over the outbound path. It adds 20 minutes for fieldwork and 5 minutes of reserve. Habitat and science stop positions are illustrative. Photos give regional context. The educational decision models time only.
+The browser runs an eight-neighbour Dijkstra search on the 281 × 207 elevation grid, and each step costs walking time. Speed follows Tobler's hiking function (normalised to the chosen flat-ground speed), so climbs are slower and outbound and return times differ. Steps steeper than 30% are impassable. "Gentler slopes" weights time by `1 + 12 × grade²`. Multi-site plans try every visiting order. "Best plan" tries every subset and picks the highest science value that fits. The time limit is min(Mission Control budget, suit life support) minus 10 minutes of reserve. The point of no return is the first spot on the plan where the fastest route home would arrive late. Tobler's function is an Earth hiking model, and habitat and site positions are illustrative. The tool is educational and models time only.
 
 ## Rebuild
 
@@ -29,4 +33,4 @@ py build-terrain.py
 py build-demo.py
 ```
 
-The demo renderer uses Windows Segoe UI and Consolas fonts. The app uses Instrument Sans and IBM Plex Mono from Google Fonts, with system fallbacks. Code, copy, terrain processing, and demo production used OpenAI Codex assistance. The elevation observations and rover photos come from the credited missions.
+`build-demo.py` records the guided tour of the real app as `dist/assets/jezero-demo.mp4`. It uses headless Microsoft Edge with virtual time, so the recording is repeatable, and takes a few minutes. The app uses Instrument Sans and IBM Plex Mono from Google Fonts, with system fallbacks. The concept is Team Ediz's. Code, copy, terrain processing and demo production used AI coding assistance (OpenAI Codex, Anthropic Claude). The elevation observations and rover photos come from the credited missions.

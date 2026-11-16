@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Planner checks</title>
+  <script src="assets/terrain-data.js"></script>
+  <script src="planner.js"></script>
+  <style>body{font:14px monospace;background:#141313;color:#fff4ed;padding:20px}.pass{color:#b9ebbd}.fail{color:#ff8a70}</style>
+</head>
+<body>
+  <h1>Planner checks</h1>
+  <ol id="out"></ol>
+  <p id="summary"></p>
+  <script>
+    const out = document.getElementById("out");
+    const results = [];
+    function check(name, ok, detail = "") {
+      results.push(ok);
+      const li = document.createElement("li");
+      li.className = ok ? "pass" : "fail";
+      li.textContent = (ok ? "PASS " : "FAIL ") + name + (detail ? " — " + detail : "");
+      out.append(li);
+    }
+    const { createPlanner, speedFactor } = window.Planner;
+    const data = window.JEZERO_DATA;
+    const p = createPlanner(data);
+    const home = p.idx(...data.habitat);
+    const delta = p.idx(...data.stops.delta);
+    const floor = p.idx(...data.stops.floor);
+    const opts = { gentle: false, speed: 2.5, science: 20 };
+
+    check("speed factor is 1 on flat ground", Math.abs(speedFactor(0) - 1) < 1e-9);
+    check("uphill is slower than downhill", speedFactor(0.1) < speedFactor(-0.1));
+    check("elevation decodes to the expected range",
+      Math.min(...p.elev) > -2600 && Math.max(...p.elev) < -2400, Math.min(...p.elev).toFixed(1));
+
+    const a = p.buildPlan({ start: home, home, order: [delta], ids: ["delta"], ...opts });
+    const b = p.buildPlan({ start: home, home, order: [floor], ids: ["floor"], ...opts });
+    check("both preset stops are reachable", a.reachable && b.reachable);
+    check("plan ends back at the habitat", a.samples.at(-1).c === home);
+    check("plan time = walking + science", Math.abs(a.end - (a.walk + a.science)) < 1e-6,
+      a.end.toFixed(1) + " min");
+    check("crater floor is closer than the west fan", b.end < a.end,
+      b.end.toFixed(0) + " vs " + a.end.toFixed(0) + " min");
+
+    const out1 = p.search(home, false, false).time[delta];
+    const back1 = p.search(home, false, true).time[delta];
+    check("outbound and return times differ on sloped terrain", Math.abs(out1 - back1) > 0.01,
+      (out1 / 2.5).toFixed(1) + " out vs " + (back1 / 2.5).toFixed(1) + " back");
+
+    const g = p.buildPlan({ start: home, home, order: [delta], ids: ["delta"], ...opts, gentle: true });
+    const peak = (plan) => Math.max(...plan.samples.slice(1).map((s, i) => {
+      const q = plan.samples[i]; const dd = s.d - q.d;
+      return dd ? Math.abs(s.z - q.z) / dd : 0; }));
+    check("gentler route has a lower or equal peak grade", peak(g) <= peak(a) + 1e-9,
+      (peak(g) * 100).toFixed(1) + "% vs " + (peak(a) * 100).toFixed(1) + "%");
+
+    const both = p.bestOrder(home, home, [delta, floor], false);
+    check("best order visits both stops", both.order.length === 2);
+    const fwd = p.buildPlan({ start: home, home, order: [delta, floor], ...opts }).end;
+    const rev = p.buildPlan({ start: home, home, order: [floor, delta], ...opts }).end;
+    check("best order is no slower than either fixed order",
+      both.minutes / 2.5 + 40 <= Math.min(fwd, rev) + 1e-6);
+
+    const cands = [{ cell: delta, value: 5 }, { cell: floor, value: 3 }];
+    const tight = p.bestSubset({ start: home, home, candidates: cands, ...opts, limit: b.end + 1 });
+    check("tight budget picks only the stop that fits", tight && tight.order.length === 1 && tight.order[0] === 1);
+    const none = p.bestSubset({ start: home, home, candidates: cands, ...opts, limit: 1 });
+    check("impossible budget still allows staying home", none && none.order.length === 0);
+
+    check("no point of no return when the plan fits", p.pointOfNoReturn(a, home, 2.5, a.end + 1) === -1);
+    const pnr = p.pointOfNoReturn(a, home, 2.5, a.end - 30);
+    check("point of no return found when the plan is over budget", pnr > 0 && pnr < a.samples.length);
+
+    const zone = p.reachField(home, { ...opts, limit: 150 });
+    check("habitat is inside the reach zone", zone[home] === 1);
+
+    const passed = results.filter(Boolean).length;
+    document.getElementById("summary").textContent = passed + "/" + results.length + " checks passed";
+    document.title = passed === results.length ? "PASS" : "FAIL";
+  </script>
+</body>
+</html>

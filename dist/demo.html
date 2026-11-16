@@ -3,20 +3,23 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="generator" content="Built with OpenAI Codex assistance">
+  <meta name="description" content="Project demo of Jezero Go/No-Go, a terrain-aware Marswalk planner by Team Ediz.">
   <title>Project Demo · Jezero Go/No-Go</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <header class="top wrap"><a class="brand" href="./"><span class="planet" aria-hidden="true"></span> TEAM EDIZ</a><nav><a href="./">Open simulator ↗</a></nav></header>
+  <header class="top wrap"><a class="brand" href="./"><span class="planet" aria-hidden="true"></span> TEAM EDIZ</a><nav aria-label="Project links"><a href="./?tour">Watch it live ▶</a><a href="./">Open planner ↗</a></nav></header>
   <main class="wrap">
-    <section class="hero"><p class="eyebrow">PROJECT DEMO</p><h1>Jezero <em>Go/No-Go</em></h1><p>See how a 20-minute time cut changes the Marswalk.</p></section>
+    <section class="hero"><p class="eyebrow">PROJECT DEMO</p><h1>Jezero <em>Go/No-Go</em></h1><p>A 45-second recording of the planner's guided tour: a time cut, the point of no return, your own sites, and a decision made mid-walk.</p></section>
     <video class="panel" controls playsinline preload="metadata" aria-label="Jezero Go/No-Go project demonstration" style="width:100%;display:block" src="assets/jezero-demo.mp4" poster="assets/demo-poster.webp"></video>
-    <details class="method panel"><summary>Transcript</summary>
-      <p>Can the crew reach Jezero’s ancient delta and make it back? At 150 minutes, the west fan fits with four minutes to spare. Mission Control cuts 20 minutes. The west fan is now 16 minutes over budget. Switch to the crater floor. The crew can still study a different geologic target and return with 41 minutes to spare.</p>
-      <p>Paths use USGS Mars 2020 MRO CTX elevation data. Rover imagery is from Perseverance Mastcam-Z. Walking speed and stop coordinates are simulation assumptions.</p>
+    <details class="method panel" open><summary>Transcript</summary>
+      <p>Plan a walk across real Mars terrain. With a 160-minute budget, the west fan in Jezero Crater fits the time limit: GO, 141 minutes against a 150-minute safe return. Mission Control cuts 30 minutes. Now it's NO-GO, and the map marks the point where the crew must turn back. The best plan that still fits swaps to the closer crater floor.</p>
+      <p>Add your own site anywhere on the map and give it a science value. Add the west fan as well and the plan overruns the limit. "Best plan" picks the most valuable set of sites that still gets the crew home in time.</p>
+      <p>Now run the EVA. The crew sets out for the west fan, and Mission Control cuts the clock mid-walk. The planner offers three choices from where the crew stands: continue (NO-GO), re-plan to the crater floor (GO), or turn back now. The crew re-plans and comes home safe with science collected.</p>
+      <p>Routes use the USGS Mars 2020 CTX elevation model from the Mars Reconnaissance Orbiter, at 20 m per cell. Walking speed depends on slope. Rover images are from Perseverance Mastcam-Z. Habitat and site positions, and the walking model, are simulation assumptions.</p>
     </details>
-    <footer>Video created with OpenAI Codex assistance. Mars data and photographs are credited in the simulator.</footer>
+    <footer>Team Ediz <span>·</span> Screen recording of the live planner <span>·</span> Concept by Team Ediz, built with AI coding assistance. Mars data and photos are credited in the planner.</footer>
   </main>
 </body>
 </html>
