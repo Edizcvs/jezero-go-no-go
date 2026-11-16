@@ -64,6 +64,57 @@ const hillshade = new Image();
 let view = { x0: 0, y0: 0, scale: 1 };
 let cursor = null; // keyboard crosshair cell [x, y]
 let zone = { key: "", canvas: document.createElement("canvas") };
+let hatch = { key: "", canvas: document.createElement("canvas") };
+let contours = null;
+// Print palette, kept in step with the CSS variables in style.css.
+const C = { ink: "#1e1c19", ink2: "#6d665b", paper: "#f4efe5", rule: "#d6cdbb", oxide: "#b33b1b", go: "#2c6a4b" };
+
+// Contour lines every 10 m (index contour every 50 m) by marching squares, in grid units.
+function buildContours() {
+  const minor = new Path2D(), major = new Path2D();
+  const z = P.elev, W = P.W, H = P.H;
+  let lo = Infinity, hi = -Infinity;
+  for (const v of z) { if (v < lo) lo = v; if (v > hi) hi = v; }
+  for (let L = Math.ceil(lo / 10) * 10; L <= hi; L += 10) {
+    const path = Math.round(L) % 50 === 0 ? major : minor;
+    for (let y = 0; y < H - 1; y++) {
+      for (let x = 0; x < W - 1; x++) {
+        const a = z[y * W + x], b = z[y * W + x + 1], c = z[(y + 1) * W + x + 1], d = z[(y + 1) * W + x];
+        if ((a < L) === (b < L) && (b < L) === (c < L) && (c < L) === (d < L)) continue;
+        const pts = [];
+        const edge = (z1, z2, x1, y1, x2, y2) => {
+          if ((z1 < L) !== (z2 < L)) { const f = (L - z1) / (z2 - z1); pts.push([x1 + (x2 - x1) * f + 0.5, y1 + (y2 - y1) * f + 0.5]); }
+        };
+        edge(a, b, x, y, x + 1, y); edge(b, c, x + 1, y, x + 1, y + 1);
+        edge(c, d, x + 1, y + 1, x, y + 1); edge(d, a, x, y + 1, x, y);
+        for (let i = 0; i + 1 < pts.length; i += 2) { path.moveTo(...pts[i]); path.lineTo(...pts[i + 1]); }
+      }
+    }
+  }
+  return { minor, major };
+}
+
+// Hatching over everything the crew could not reach and return from, at display resolution.
+function hatchCanvas(width, height) {
+  const ratio = window.devicePixelRatio || 1;
+  const key = zone.key + "|" + width + "x" + height + "|" + ratio;
+  const c = hatch.canvas;
+  if (hatch.key === key) return c;
+  c.width = Math.round(width * ratio); c.height = Math.round(height * ratio);
+  const ctx = c.getContext("2d");
+  ctx.scale(ratio, ratio);
+  ctx.fillStyle = "rgba(244,239,229,0.45)";
+  ctx.fillRect(0, 0, width, height);
+  ctx.strokeStyle = "rgba(179,59,27,0.55)"; ctx.lineWidth = 1;
+  ctx.beginPath();
+  for (let i = -height; i < width; i += 7) { ctx.moveTo(i, height); ctx.lineTo(i + height, 0); }
+  ctx.stroke();
+  ctx.globalCompositeOperation = "destination-out";
+  ctx.imageSmoothingEnabled = true;
+  ctx.drawImage(zone.canvas, view.x0, view.y0, P.W * view.scale, P.H * view.scale);
+  hatch.key = key;
+  return c;
+}
 
 function sizeCanvas(canvas) {
   const { width, height } = canvas.getBoundingClientRect();
@@ -83,13 +134,7 @@ function zoneCanvas() {
   const ctx = c.getContext("2d");
   const img = ctx.createImageData(P.W, P.H);
   const set = (i, r, g, b, a) => { img.data[i * 4] = r; img.data[i * 4 + 1] = g; img.data[i * 4 + 2] = b; img.data[i * 4 + 3] = a; };
-  for (let i = 0; i < ok.length; i++) {
-    if (!ok[i]) { set(i, 14, 8, 8, 150); continue; }
-    // Outline: reachable cells that touch an unreachable one.
-    const x = i % P.W;
-    const edge = (x > 0 && !ok[i - 1]) || (x < P.W - 1 && !ok[i + 1]) || !ok[i - P.W] && i >= P.W || (i + P.W < ok.length && !ok[i + P.W]);
-    if (edge) set(i, 255, 214, 190, 170);
-  }
+  for (let i = 0; i < ok.length; i++) if (ok[i]) set(i, 0, 0, 0, 255); // mask: reachable cells opaque
   ctx.putImageData(img, 0, 0);
   zone.key = key;
   return c;
@@ -100,10 +145,19 @@ function drawMap(plan, pnr) {
   const scale = Math.min(width / P.W, height / P.H);
   view = { x0: (width - P.W * scale) / 2, y0: (height - P.H * scale) / 2, scale };
   const X = (v) => view.x0 + v * scale, Y = (v) => view.y0 + v * scale;
-  ctx.fillStyle = "#1a1312"; ctx.fillRect(0, 0, width, height);
+  ctx.fillStyle = C.paper; ctx.fillRect(0, 0, width, height);
   if (hillshade.complete && hillshade.naturalWidth) ctx.drawImage(hillshade, X(0), Y(0), P.W * scale, P.H * scale);
-  ctx.imageSmoothingEnabled = true;
-  ctx.drawImage(zoneCanvas(), X(0), Y(0), P.W * scale, P.H * scale);
+
+  // Contours, drawn in grid units with a hairline width.
+  contours ??= buildContours();
+  ctx.save();
+  ctx.translate(view.x0, view.y0); ctx.scale(scale, scale);
+  ctx.lineWidth = 0.6 / scale; ctx.strokeStyle = "rgba(109,102,91,0.38)"; ctx.stroke(contours.minor);
+  ctx.lineWidth = 1.1 / scale; ctx.strokeStyle = "rgba(30,28,25,0.55)"; ctx.stroke(contours.major);
+  ctx.restore();
+
+  zoneCanvas();
+  ctx.drawImage(hatchCanvas(width, height), 0, 0, width, height);
 
   const line = (cells, color, w, dash = []) => {
     if (cells.length < 2) return;
@@ -112,33 +166,40 @@ function drawMap(plan, pnr) {
     ctx.strokeStyle = color; ctx.lineWidth = w; ctx.lineJoin = ctx.lineCap = "round";
     ctx.setLineDash(dash); ctx.stroke(); ctx.setLineDash([]);
   };
+  const label = (text, x, y, color) => {
+    ctx.font = "600 10.5px 'IBM Plex Mono', monospace";
+    ctx.lineWidth = 4; ctx.strokeStyle = C.paper; ctx.lineJoin = "round";
+    ctx.strokeText(text, x, y); ctx.fillStyle = color; ctx.fillText(text, x, y);
+  };
   if (plan.reachable) {
     const pts = plan.samples.map((s) => cellXY(s.c));
-    line(pts, "#28140d", 6);
-    line(pts, "#ffc09c", 3);
+    line(pts, C.paper, 7);
+    line(pts, C.oxide, 2.75);
     if (pnr >= 0) {
-      const after = pts.slice(pnr);
-      line(after, "#ff7a5c", 3, [5, 5]);
+      line(pts.slice(pnr), C.paper, 3.5);
+      line(pts.slice(pnr), C.ink, 2, [2, 5]);
       const [px, py] = pts[pnr];
-      ctx.beginPath(); ctx.arc(X(px), Y(py), 7, 0, Math.PI * 2);
-      ctx.fillStyle = "#ff7a5c"; ctx.fill(); ctx.strokeStyle = "#1a1312"; ctx.lineWidth = 2; ctx.stroke();
-      ctx.font = "600 11px 'IBM Plex Mono', monospace"; ctx.fillStyle = "#fff";
-      ctx.strokeStyle = "#1a1312"; ctx.lineWidth = 3;
-      ctx.strokeText("TURN BACK", X(px) + 11, Y(py) + 4); ctx.fillText("TURN BACK", X(px) + 11, Y(py) + 4);
+      ctx.beginPath(); ctx.arc(X(px), Y(py), 6.5, 0, Math.PI * 2);
+      ctx.fillStyle = C.paper; ctx.fill(); ctx.strokeStyle = C.oxide; ctx.lineWidth = 2; ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(X(px) - 3.5, Y(py) - 3.5); ctx.lineTo(X(px) + 3.5, Y(py) + 3.5);
+      ctx.moveTo(X(px) + 3.5, Y(py) - 3.5); ctx.lineTo(X(px) - 3.5, Y(py) + 3.5); ctx.stroke();
+      label("TURN BACK", X(px) + 12, Y(py) + 4, C.oxide);
     }
   }
   const eva = state.eva;
   if (eva) {
-    line(eva.trail, "#ffffff", 2.5);
+    line(eva.trail, C.paper, 5);
+    line(eva.trail, C.ink, 2);
     const at = eva.trail.at(-1);
     if (at) {
-      ctx.beginPath(); ctx.arc(X(at[0]), Y(at[1]), 11, 0, Math.PI * 2); ctx.fillStyle = "#b9ebbd40"; ctx.fill();
-      ctx.beginPath(); ctx.arc(X(at[0]), Y(at[1]), 5.5, 0, Math.PI * 2); ctx.fillStyle = "#b9ebbd"; ctx.fill();
+      ctx.beginPath(); ctx.arc(X(at[0]), Y(at[1]), 10, 0, Math.PI * 2); ctx.strokeStyle = C.ink; ctx.lineWidth = 1; ctx.stroke();
+      ctx.beginPath(); ctx.arc(X(at[0]), Y(at[1]), 5, 0, Math.PI * 2); ctx.fillStyle = C.go; ctx.fill();
+      ctx.strokeStyle = C.paper; ctx.lineWidth = 1.5; ctx.stroke();
     }
   }
   if (cursor && document.activeElement === map && !eva) {
     const cx = X(cursor[0] + 0.5), cy = Y(cursor[1] + 0.5);
-    ctx.strokeStyle = "#fff"; ctx.lineWidth = 1.5;
+    ctx.strokeStyle = C.ink; ctx.lineWidth = 1.5;
     ctx.beginPath(); ctx.moveTo(cx - 12, cy); ctx.lineTo(cx - 4, cy); ctx.moveTo(cx + 4, cy); ctx.lineTo(cx + 12, cy);
     ctx.moveTo(cx, cy - 12); ctx.lineTo(cx, cy - 4); ctx.moveTo(cx, cy + 4); ctx.lineTo(cx, cy + 12); ctx.stroke();
   }
@@ -174,35 +235,41 @@ function drawProfile(plan, pnr) {
   const s = plan.samples, d0 = s[0].d, span = Math.max(1, s.at(-1).d - d0);
   const zs = s.map((p) => p.z);
   const lo = Math.floor(Math.min(...zs) / 10) * 10, hi = Math.ceil(Math.max(...zs) / 10) * 10;
-  const left = 64, right = 18, top = 22, bottom = height - 28;
+  const left = 64, right = 18, top = 24, bottom = height - 28;
   const X = (d) => left + (width - left - right) * (d - d0) / span;
   const Y = (z) => bottom - (bottom - top) * (z - lo) / (hi - lo || 1);
-  ctx.font = "10px 'IBM Plex Mono', monospace"; ctx.fillStyle = "#c7b7af"; ctx.strokeStyle = "#3b3330";
+  ctx.font = "10px 'IBM Plex Mono', monospace"; ctx.fillStyle = C.ink2; ctx.strokeStyle = C.rule; ctx.lineWidth = 1;
   [lo, (lo + hi) / 2, hi].forEach((z) => {
     ctx.fillText(Math.round(z) + " m", 8, Y(z) + 3);
-    ctx.beginPath(); ctx.moveTo(left, Y(z)); ctx.lineTo(width - right, Y(z)); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(left, Y(z) + 0.5); ctx.lineTo(width - right, Y(z) + 0.5); ctx.stroke();
   });
   ctx.fillText("0 km", left, bottom + 18);
   const end = (span / 1000).toFixed(2) + " km";
   ctx.fillText(end, width - right - ctx.measureText(end).width, bottom + 18);
+  // Hatched area under the profile, ink line on top.
+  ctx.save();
   ctx.beginPath(); s.forEach((p, i) => (i ? ctx.lineTo(X(p.d), Y(p.z)) : ctx.moveTo(X(p.d), Y(p.z))));
-  ctx.strokeStyle = "#ffc09c"; ctx.lineWidth = 2.2; ctx.stroke();
   ctx.lineTo(X(s.at(-1).d), bottom); ctx.lineTo(left, bottom); ctx.closePath();
-  const g = ctx.createLinearGradient(0, top, 0, bottom); g.addColorStop(0, "#f9906c48"); g.addColorStop(1, "#f9906c05");
-  ctx.fillStyle = g; ctx.fill();
+  ctx.fillStyle = "rgba(179,59,27,0.06)"; ctx.fill(); ctx.clip();
+  ctx.strokeStyle = "rgba(179,59,27,0.22)"; ctx.beginPath();
+  for (let i = left - height; i < width; i += 6) { ctx.moveTo(i, bottom); ctx.lineTo(i + height, bottom - height); }
+  ctx.stroke(); ctx.restore();
+  ctx.beginPath(); s.forEach((p, i) => (i ? ctx.lineTo(X(p.d), Y(p.z)) : ctx.moveTo(X(p.d), Y(p.z))));
+  ctx.strokeStyle = C.ink; ctx.lineWidth = 1.6; ctx.lineJoin = "round"; ctx.stroke();
   const marker = (d, color, label) => {
-    ctx.strokeStyle = color; ctx.setLineDash([3, 4]); ctx.lineWidth = 1;
+    ctx.strokeStyle = color; ctx.setLineDash([2, 3]); ctx.lineWidth = 1;
     ctx.beginPath(); ctx.moveTo(X(d), top - 6); ctx.lineTo(X(d), bottom); ctx.stroke(); ctx.setLineDash([]);
-    ctx.fillStyle = color; ctx.fillText(label, Math.min(X(d) + 4, width - right - ctx.measureText(label).width), top - 8);
+    ctx.fillStyle = color; ctx.fillText(label, Math.min(X(d) + 4, width - right - ctx.measureText(label).width), top - 9);
   };
   plan.visits.forEach((v) => {
     const sample = s.find((p) => p.c === v.cell && p.t >= v.arrive - 1e-6);
-    if (sample) marker(sample.d, "#e9dcd4", stopById(v.id)?.label || "");
+    if (sample) marker(sample.d, C.ink2, stopById(v.id)?.label || "");
   });
-  if (pnr >= 0) marker(s[pnr].d, "#ff7a5c", "TURN BACK");
+  if (pnr >= 0) marker(s[pnr].d, C.oxide, "TURN BACK");
   const crew = state.eva && crewAt(state.eva.clock);
   if (crew) {
-    ctx.beginPath(); ctx.arc(X(crew.d), Y(crew.z), 5, 0, Math.PI * 2); ctx.fillStyle = "#b9ebbd"; ctx.fill();
+    ctx.beginPath(); ctx.arc(X(crew.d), Y(crew.z), 4.5, 0, Math.PI * 2); ctx.fillStyle = C.go; ctx.fill();
+    ctx.strokeStyle = C.paper; ctx.lineWidth = 1.5; ctx.stroke();
   }
   chart.setAttribute("aria-label", `Elevation along the plan, ${Math.round(Math.min(...zs))} to ${Math.round(Math.max(...zs))} m over ${end}.`);
 }
@@ -319,7 +386,7 @@ function renderControls(plan) {
     b.setAttribute("aria-pressed", (b.dataset.route === "gentle") === state.gentle); b.disabled = !!eva; });
   const start = byId("start");
   start.disabled = eva ? false : !go;
-  start.textContent = !eva ? (go ? "▶ Start EVA" : "Plan is NO-GO") : eva.done ? "↺ New EVA" : eva.paused ? "Paused" : "■ Abort";
+  start.textContent = !eva ? (go ? "Start EVA" : "Plan is NO-GO") : eva.done ? "New EVA" : eva.paused ? "Paused" : "Abort EVA";
   if (eva && !eva.done && eva.paused) start.disabled = true;
   byId("cut").disabled = (eva && (eva.done || eva.paused)) || state.budget - CUT < RESERVE;
   byId("cut").lastChild.textContent = eva && !eva.done ? ` Cut ${CUT} min now` : ` Mission Control: −${CUT} min`;
@@ -583,7 +650,7 @@ byId("reset").addEventListener("click", () => { byId("decision").close(); resetS
 
 resetState();
 hillshade.onload = () => render();
-hillshade.src = "assets/terrain.webp";
+hillshade.src = "assets/terrain.webp?v=paper"; // query busts caches of the old dark basemap
 new ResizeObserver(() => render()).observe(byId("map"));
 render();
 const params = new URLSearchParams(location.search);

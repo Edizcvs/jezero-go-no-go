@@ -4,111 +4,139 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Jezero Go/No-Go: a terrain-aware Marswalk planner by Team Ediz.">
-  <title>Jezero Go/No-Go</title>
+  <meta name="theme-color" content="#f4efe5">
+  <title>Jezero Go/No-Go · Marswalk planning sheet</title>
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=paper">
   <script defer src="assets/terrain-data.js"></script>
-  <script defer src="planner.js"></script>
-  <script defer src="app.js"></script>
+  <script defer src="planner.js?v=paper"></script>
+  <script defer src="app.js?v=paper"></script>
 </head>
 <body>
-  <header class="top wrap">
-    <a class="brand" href="./"><span class="planet" aria-hidden="true"></span> TEAM EDIZ</a>
-    <nav aria-label="Project links"><button type="button" id="tour" class="navbtn">▶ Guided tour</button><a href="demo.html">Project demo ↗</a><a href="#method">Data &amp; method ↓</a></nav>
+  <header class="strip wrap">
+    <span>Team Ediz <i>—</i> NASA Space Apps Challenge 2026</span>
+    <nav aria-label="Project links">
+      <button type="button" id="tour" class="navbtn">Guided tour</button>
+      <a href="demo.html">Demo film</a>
+      <a href="#method">Method</a>
+    </nav>
   </header>
+
   <main class="wrap">
-    <section class="hero">
-      <p class="eyebrow">MARSWALK PLANNER <span>/</span> WESTERN JEZERO CRATER</p>
-      <h1>Jezero <em>Go/No-Go</em></h1>
-      <p>Plan a walk across real Martian terrain, see where the crew must turn back, then run the EVA. When Mission Control cuts the clock mid-walk, you decide what science is still worth it.</p>
+    <section class="title">
+      <div>
+        <p class="kicker">Marswalk planning sheet · No. 01</p>
+        <h1>Jezero <em>Go/No-Go</em></h1>
+        <p class="lede">Plan a walk across real Martian terrain, see where the crew has to turn back, then run the EVA. When Mission Control cuts the clock halfway out, you decide what science is still worth it.</p>
+      </div>
+      <dl class="plate">
+        <div><dt>Site</dt><dd>Western Jezero Crater, Mars</dd></div>
+        <div><dt>Centre</dt><dd>18.45° N · 77.42° E</dd></div>
+        <div><dt>Terrain</dt><dd>MRO CTX elevation, 20 m</dd></div>
+        <div><dt>Contours</dt><dd>10 m, index 50 m</dd></div>
+      </dl>
     </section>
 
     <div class="workspace">
-      <section class="map-panel" aria-labelledby="map-heading">
-        <header class="panel-head"><h2 id="map-heading">Traverse map</h2><span class="mono">MRO CTX DEM · 20 M/PIXEL</span></header>
+      <section class="chart" aria-labelledby="map-heading">
+        <header class="fig-head"><h2 id="map-heading"><span class="fig">Fig. 1</span> Traverse chart</h2><span class="note">Click the chart to add a site</span></header>
         <div id="map" class="map">
-          <canvas id="map-canvas" tabindex="0" role="application" aria-roledescription="map" aria-label="Terrain map of western Jezero crater with the habitat, science sites, the planned traverse and the shaded area the crew cannot reach and return from in time. Click to add a site, or use the arrow keys to move the crosshair (Shift for bigger steps) and press Enter."></canvas>
+          <canvas id="map-canvas" tabindex="0" role="application" aria-roledescription="map" aria-label="Terrain chart of western Jezero crater with the habitat, science sites, the planned traverse and the hatched area the crew cannot reach and return from in time. Click to add a site, or use the arrow keys to move the crosshair (Shift for bigger steps) and press Enter."></canvas>
           <p id="tour-caption" class="caption" aria-live="polite" hidden></p>
-          <div class="pin habitat" id="pin-base" aria-label="Habitat">⌂ <span>Habitat</span></div>
-          <div class="map-north" aria-hidden="true">N<br>↑</div>
-          <div class="scale" aria-hidden="true"><span id="scale-line"></span> 1 km</div>
+          <div class="pin habitat" id="pin-base" aria-label="Habitat"><span>Habitat</span></div>
+          <div class="map-north" aria-hidden="true"><b>N</b></div>
+          <div class="scale" aria-hidden="true"><span id="scale-line"></span>1 km</div>
           <dialog id="decision" class="decision" aria-labelledby="decision-title">
-            <p class="eyebrow">⚡ MISSION CONTROL</p>
+            <p class="kicker">Message from Mission Control</p>
             <h3 id="decision-title"></h3>
             <p id="decision-text"></p>
             <div id="decision-options" class="options"></div>
           </dialog>
         </div>
-        <div class="legend">
-          <span><i class="l-route"></i> Planned traverse</span>
-          <span><i class="l-pnr"></i> Past point of no return</span>
-          <span><i class="l-zone"></i> Out of reach and return</span>
-          <span><i class="l-crew"></i> Crew</span>
-        </div>
+        <ul class="key" aria-label="Chart key">
+          <li><i class="k-route"></i>Planned traverse</li>
+          <li><i class="k-pnr"></i>Beyond point of no return</li>
+          <li><i class="k-zone"></i>Can't reach and return in time</li>
+          <li><i class="k-crew"></i>Crew</li>
+          <li><i class="k-contour"></i>Contour</li>
+        </ul>
       </section>
 
-      <section class="controls panel" aria-labelledby="mission-heading">
-        <header class="panel-head"><h2 id="mission-heading">Mission control</h2><button type="button" class="quiet" id="reset">Reset</button></header>
-        <div class="controls-body">
-          <div id="verdict" class="verdict" role="status" aria-live="polite"></div>
-          <div class="timeline-wrap">
-            <div id="timeline" class="timeline" role="img"></div>
-            <div class="t-legend"><span><i class="walk"></i>Walk</span><span><i class="sci"></i>Science</span><span><i class="res"></i>Reserve</span><span><i class="pnr"></i>Turn back</span></div>
-          </div>
+      <section class="sheet" aria-labelledby="mission-heading">
+        <header class="sheet-head"><h2 id="mission-heading">Mission control</h2><button type="button" class="quiet" id="reset">Reset sheet</button></header>
 
+        <div class="block">
+          <h3 class="sec"><span>01</span> Decision</h3>
+          <div id="verdict" class="verdict" role="status" aria-live="polite"></div>
+        </div>
+
+        <div class="block">
+          <h3 class="sec"><span>02</span> Timeline</h3>
+          <div id="timeline" class="timeline" role="img"></div>
+          <div class="t-key"><span><i class="walk"></i>Walking</span><span><i class="sci"></i>Science</span><span><i class="res"></i>Reserve</span><span><i class="pnr"></i>Turn back</span></div>
+        </div>
+
+        <div class="block">
+          <h3 class="sec"><span>03</span> Run the EVA</h3>
           <div class="eva-row">
-            <button id="start" class="primary" type="button">▶ Start EVA</button>
+            <button id="start" class="primary" type="button">Start EVA</button>
             <output id="clock" class="clock">T+0</output>
           </div>
-          <button id="cut" class="cut" type="button"><span aria-hidden="true">⚡</span> Mission Control: −30 min</button>
+          <button id="cut" class="cut" type="button"><span aria-hidden="true">✕</span> Mission Control: −30 min</button>
           <label class="check"><input type="checkbox" id="surprise" checked> Surprise time cut during the EVA</label>
-
-          <fieldset><legend>Science sites <span class="hint">value 1–5</span></legend>
-            <ul id="stops" class="stops"></ul>
-            <p class="hint" id="add-hint"></p>
-            <button type="button" id="best" class="secondary">Best plan for this budget</button>
-          </fieldset>
-
-          <fieldset><legend>Time limits</legend>
-            <label class="range-label" for="budget">Mission Control budget <output id="budget-out"></output></label>
-            <input type="range" id="budget" min="60" max="240" step="5">
-            <label class="range-label" for="suit">Suit life support <output id="suit-out"></output></label>
-            <input type="range" id="suit" min="90" max="360" step="10">
-          </fieldset>
-
-          <fieldset><legend>Route preference</legend>
-            <div class="choice-row"><button type="button" data-route="fast">Fastest</button><button type="button" data-route="gentle">Gentler slopes</button></div>
-          </fieldset>
-
-          <details class="assumptions"><summary>Simulation assumptions</summary>
-            <label class="range-label" for="speed">Flat-ground walking speed <output id="speed-out"></output></label>
-            <input type="range" id="speed" min="1.5" max="4" step="0.1">
-            <label class="range-label" for="science">Time at each site <output id="science-out"></output></label>
-            <input type="range" id="science" min="5" max="45" step="5">
-            <p>Speed changes with slope (Tobler hiking function). Grades over 30% are impassable. The crew must be home with 10 min of reserve left.</p>
-          </details>
         </div>
+
+        <fieldset class="block">
+          <legend class="sec"><span>04</span> Science sites</legend>
+          <ul id="stops" class="stops"></ul>
+          <p class="hint" id="add-hint"></p>
+          <button type="button" id="best" class="secondary">Best plan for this budget</button>
+        </fieldset>
+
+        <fieldset class="block">
+          <legend class="sec"><span>05</span> Time limits</legend>
+          <label class="range-label" for="budget">Mission Control budget <output id="budget-out"></output></label>
+          <input type="range" id="budget" min="60" max="240" step="5">
+          <label class="range-label" for="suit">Suit life support <output id="suit-out"></output></label>
+          <input type="range" id="suit" min="90" max="360" step="10">
+        </fieldset>
+
+        <fieldset class="block">
+          <legend class="sec"><span>06</span> Route preference</legend>
+          <div class="choice-row"><button type="button" data-route="fast">Fastest</button><button type="button" data-route="gentle">Gentler slopes</button></div>
+        </fieldset>
+
+        <details class="block assumptions"><summary>Simulation assumptions</summary>
+          <label class="range-label" for="speed">Flat-ground walking speed <output id="speed-out"></output></label>
+          <input type="range" id="speed" min="1.5" max="4" step="0.1">
+          <label class="range-label" for="science">Time at each site <output id="science-out"></output></label>
+          <input type="range" id="science" min="5" max="45" step="5">
+          <p>Speed changes with slope (Tobler hiking function). Grades over 30% are impassable. The crew must be home with 10 min of reserve left.</p>
+        </details>
       </section>
     </div>
 
     <div class="below">
-      <section class="panel profile" aria-labelledby="profile-heading">
-        <header class="panel-head"><h2 id="profile-heading">Elevation along the plan</h2><span class="mono">OUT AND BACK</span></header>
+      <section class="profile" aria-labelledby="profile-heading">
+        <header class="fig-head"><h2 id="profile-heading"><span class="fig">Fig. 2</span> Elevation along the plan</h2><span class="note">Out and back</span></header>
         <dl class="stats" id="stats"></dl>
         <canvas id="profile-chart" role="img"></canvas>
       </section>
-      <article class="panel science" aria-labelledby="science-title">
-        <img id="science-img" src="assets/scarp.jpg" alt="">
-        <div class="science-copy"><p class="eyebrow">SCIENCE SITE</p><h2 id="science-title"></h2>
-          <p id="science-text"></p><a id="science-source" target="_blank" rel="noreferrer">Perseverance image ↗</a>
+      <article class="science" aria-labelledby="science-title">
+        <figure>
+          <img id="science-img" src="assets/scarp.jpg" alt="">
+        </figure>
+        <div class="science-copy"><p class="kicker">Science site</p><h2 id="science-title"></h2>
+          <p id="science-text"></p><a id="science-source" target="_blank" rel="noreferrer">Perseverance image, NASA/JPL-Caltech/ASU/MSSS</a>
         </div>
       </article>
     </div>
 
-    <details class="method panel" id="method">
-      <summary>Data, calculations, and limits</summary>
-      <p>The map is a hillshade of the USGS Mars 2020 Context Camera (CTX) elevation mosaic at 20 m per cell. The browser plans routes live on that grid. It uses Dijkstra's algorithm over the eight neighbouring cells, and each step costs walking time. Walking speed follows Tobler's hiking function: fastest on a slight downhill, slower uphill and on steep descents. So the way back takes a different time from the way out. Steps steeper than 30% are treated as impassable. "Gentler slopes" adds a penalty for grade, so it trades a little time for easier footing.</p>
-      <p>For several sites, the planner tries every visiting order and picks the fastest. "Best plan" tries every subset of sites and picks the highest total science value that still gets the crew home in time. The time limit is the smaller of the Mission Control budget and the suit's life support, minus a 10-minute reserve. The point of no return is the first spot on the plan where the fastest way home would arrive after that limit. The shaded area marks places the crew could not visit and still return in time.</p>
+    <details class="method" id="method">
+      <summary>Data, calculations and limits</summary>
+      <div class="method-body">
+      <p>The chart is a hillshade of the USGS Mars 2020 Context Camera (CTX) elevation mosaic at 20 m per cell, with contours every 10 m. The browser plans routes live on that grid. It uses Dijkstra's algorithm over the eight neighbouring cells, and each step costs walking time. Walking speed follows Tobler's hiking function: fastest on a slight downhill, slower uphill and on steep descents. So the way back takes a different time from the way out. Steps steeper than 30% are treated as impassable. "Gentler slopes" adds a penalty for grade, so it trades a little time for easier footing.</p>
+      <p>For several sites, the planner tries every visiting order and picks the fastest. "Best plan" tries every subset of sites and picks the highest total science value that still gets the crew home in time. The time limit is the smaller of the Mission Control budget and the suit's life support, minus a 10-minute reserve. The point of no return is the first spot on the plan where the fastest way home would arrive after that limit. Hatching marks places the crew could not visit and still return in time.</p>
       <p>Limits: Tobler's function was measured for hikers on Earth. It does not model Mars gravity, suit mobility, loose regolith, rest stops or consumables beyond the time limit. Habitat and site positions are illustrative, and science values are user-set priorities. This is an educational tool, not an operational planner.</p>
       <ul>
         <li><a href="https://astrogeology.usgs.gov/search/map/mars_2020_science_investigation_ctx_dem_mosaic">USGS Astrogeology · Mars 2020 Science Investigation CTX DEM Mosaic</a></li>
@@ -117,8 +145,9 @@
         <li><a href="https://www.usgs.gov/maps/geologic-map-jezero-crater-and-nili-planum-region-mars">USGS · Geologic map of Jezero crater and Nili Planum</a></li>
         <li>Tobler, W. (1993). Three presentations on geographical analysis and modeling. NCGIA Technical Report 93-1.</li>
       </ul>
+      </div>
     </details>
-    <footer>Team Ediz <span>·</span> NASA Space Apps Challenge 2026 <span>·</span> Concept by Team Ediz. Built with AI coding assistance (OpenAI Codex, Anthropic Claude).</footer>
+    <footer><span>Team Ediz</span><span>Concept by Team Ediz. Built with AI coding assistance (OpenAI Codex, Anthropic Claude).</span></footer>
   </main>
 </body>
 </html>
